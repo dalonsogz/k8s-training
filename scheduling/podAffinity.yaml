@@ -1,0 +1,52 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: training-v2
+  labels:
+    app: training
+    version: v2
+spec:
+  selector:
+    matchLabels:
+      app: training
+      version: v2
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: training
+        version: v2
+    spec:
+      containers:
+      - name: training
+        image: registry.kamilbaran.pl/training/kubernetes/demo-app:v2
+        imagePullPolicy: Always
+      affinity:
+        podAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - training
+              - key: version
+                operator: In
+                values:
+                - v1
+            topologyKey: "kubernetes.io/hostname"
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - training
+              - key: version
+                operator: In
+                values:
+                - v2
+            topologyKey: "kubernetes.io/hostname"
+

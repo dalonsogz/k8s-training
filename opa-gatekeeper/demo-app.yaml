@@ -1,0 +1,38 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo
+  labels:
+    app: demo
+spec:
+  selector:
+    matchLabels:
+      app: demo
+  template:
+    metadata:
+      labels:
+        app: demo
+    spec:
+      containers:
+      - name: demo
+        image: registry.kamilbaran.pl/training/kubernetes/demo-app:v1
+        securityContext:
+          runAsNonRoot: false
+          runAsUser: 65534
+          runAsGroup: 65534
+          allowPrivilegeEscalation: true
+          privileged: true
+          readOnlyRootFilesystem: false
+          capabilities: { drop: ["ALL"] }
+        ports:
+        - name: http
+          containerPort: 8080
+        volumeMounts:
+        - name: demo-volume
+          mountPath: /tmp
+      volumes:
+      - name: demo-volume
+        hostPath:
+          path: /etc
+          type: DirectoryOrCreate

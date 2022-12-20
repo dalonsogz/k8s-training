@@ -1,0 +1,22 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apparmor-deny-write
+spec:
+  selector:
+    matchLabels:
+      app: apparmor-deny-write
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: apparmor-deny-write
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/aa-deny-write: localhost/deny-write
+    spec:
+      containers:
+      - name: aa-deny-write
+        image: alpine
+        command: ["sh", "-c", "sleep 1h"]
+

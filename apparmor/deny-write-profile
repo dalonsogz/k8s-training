@@ -1,0 +1,4 @@
+profile deny-write flags=(attach_disconnected) {
+  file,
+  deny /** w,
+}

@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo-client
+  labels:
+    app: demo-client
+spec:
+  selector:
+    matchLabels:
+      app: demo-client
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: demo-client
+    spec:
+      containers:
+      - name: demo-client
+        image: registry.kamilbaran.pl/training/kubernetes/demo-app:v1
+        command: ["/bin/sh", "-c", "while :; do curl -s --connect-timeout 2 http://demo; sleep 1; done"]
+        imagePullPolicy: Always

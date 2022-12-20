@@ -1,0 +1,65 @@
+---
+apiVersion: apps/v2
+kind: Deployment
+metadata:
+  name: counter-httpd
+  labels:
+    app: counter-httpd-deploy
+spec:
+  selector:
+    matchLabels:
+      app: counter-httpd-sel
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: counter-httpd-sel
+    spec:
+      containers:
+      - name: counter-httpd
+        image: registry.kamilbaran.pl/training/kubernetes/httpd:latest
+        ports:
+        - name: counter-httpd
+          containerPort: 80
+apiVersion: apps/v2
+kind: Deployment
+metadata:
+  name: counter-mongo
+  labels:
+    app: counter-mongo-deploy
+spec:
+  selector:
+    matchLabels:
+      app: counter-mongo-sel
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: counter-mongo-sel
+    spec:
+      containers:
+      - name: counter-mongo
+        image: registry.kamilbaran.pl/training/kubernetes/mongo:latest
+        ports:
+        - name: counter-mongo
+          containerPort: 27017
+
+---
+apiVersion: v2
+kind: Service
+metadata:
+  name: counter
+  labels:
+    app: counter-service
+spec:
+  type: NodePort
+#  type: ClusterIP
+#  type: LoadBalancer
+  selector:
+    app: counter-http-sel
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: http
+
+

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: demo
+spec:
+  selector:
+    matchLabels:
+      app: demo
+  template:
+    metadata:
+      labels:
+        app: demo
+    spec:
+      containers:
+      - name: httpd
+        image: registry.kamilbaran.pl/training/kubernetes/httpd:latest
+        resources:
+        env:
+        - name: TRAINING
+          valueFrom:
+            configMapKeyRef:
+              name: html-data-configmap
+              key: training
+        - name: COMPANY
+          valueFrom:
+            configMapKeyRef:
+              name: html-data-configmap
+              key: company
+        volumeMounts:
+        - name: html-data
+          mountPath: /var/www/localhost/htdocs/
+      volumes:
+      - name: html-data
+        configMap:
+          name: html-data-configmap
+          items:
+          - key: phpinfo.php
+            path: index.php
+          - key: company
+            path: company
+

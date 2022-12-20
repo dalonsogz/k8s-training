@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-security-context
+spec:
+  containers:
+  - name: demo
+    imagePullPolicy: Always
+    image: registry.kamilbaran.pl/training/kubernetes/demo-app:v1
+    command: [ "sh", "-c", "sleep 1h" ]
+    #image: registry.kamilbaran.pl/training/kubernetes/demo-app:v80
+    #volumeMounts:
+    #- name: data
+      #mountPath: /data
+    #securityContext:
+      #runAsUser: 1000
+      #allowPrivilegeEscalation: false
+      #readOnlyRootFilesystem: true
+      #privileged: false
+      #capabilities:
+        #add: ["NET_BIND_SERVICE"]
+        #add: ["CAP_CHOWN"]
+        #drop: ["all"]
+  #volumes:
+  #- name: data
+    #emptyDir: {}
+  #securityContext:
+    #runAsUser: 1000
+    #runAsGroup: 2000
+    #fsGroup: 3000
+    #runAsNonRoot: true
+

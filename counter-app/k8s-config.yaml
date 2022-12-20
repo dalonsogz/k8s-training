@@ -1,0 +1,70 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: counter-httpd
+  labels:
+    component: httpd
+    part-of: counter
+spec:
+  selector:
+    matchLabels:
+      component: httpd
+      part-of: counter
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        component: httpd
+        part-of: counter
+    spec:
+      containers:
+      - name: httpd
+        image: kamilbaran/training:counter
+        imagePullPolicy: Always
+      - name: mongo
+        image: kamilbaran/training:mongo
+        imagePullPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: counter-httpd
+  labels:
+    component: httpd
+    part-of: counter
+spec:
+  type: ClusterIP
+  selector:
+    component: httpd
+    part-of: counter
+  ports:
+  - port: 80
+    protocol: TCP
+    targetPort: 80
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pl-kamilbaran-counter
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  tls:
+  - hosts:
+    - counter.kamilbaran.pl
+    secretName: pl-kamilbaran-counter-tls
+  rules:
+  - host: counter.kamilbaran.pl
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: counter-httpd
+            port:
+              number: 80

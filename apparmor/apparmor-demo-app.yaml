@@ -1,0 +1,21 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: apparmor-demo
+spec:
+  selector:
+    matchLabels:
+      app: apparmor-demo
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: apparmor-demo
+      annotations:
+        container.apparmor.security.beta.kubernetes.io/aa-demo: localhost/demo-app
+    spec:
+      containers:
+      - name: aa-demo
+        image: registry.kamilbaran.pl/training/kubernetes/demo-app:v1
+
