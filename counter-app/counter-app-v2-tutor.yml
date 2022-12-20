@@ -5,11 +5,13 @@ metadata:
   name: counter-httpd
   labels:
     app: counter
+    component: httpd
 spec:
+  replicas: 3
   selector:
     matchLabels:
       app: counter
-  replicas: 1
+      component: httpd
   template:
     metadata:
       labels:
@@ -19,6 +21,9 @@ spec:
       containers:
       - name: httpd
         image: registry.kamilbaran.pl/training/kubernetes/httpd:latest
+        env:
+        - name: MONGO_CS
+          value: mongodb://counter-mongo:27017 #mongo service name
         ports:
         - name: http
           containerPort: 80
@@ -29,6 +34,7 @@ metadata:
   name: counter-httpd
   labels:
     app: counter
+    component: httpd
 spec:
   type: NodePort
   selector:
@@ -36,8 +42,8 @@ spec:
     component: httpd
   ports:
   - port: 80
-    protocol: TCP
     targetPort: http
+    name: http
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -45,11 +51,13 @@ metadata:
   name: counter-mongo
   labels:
     app: counter
+    component: mongo
 spec:
+  replicas: 1
   selector:
     matchLabels:
       app: counter
-  replicas: 1
+      component: mongo
   template:
     metadata:
       labels:
@@ -57,10 +65,15 @@ spec:
         component: mongo
     spec:
       containers:
-      - name: counter
+      - name: mongo
         image: registry.kamilbaran.pl/training/kubernetes/mongo:latest
+        command:
+        - /usr/bin/mongod
+        - --dbpath=/data/db
+        - --bind_ip_all
+        - --wiredTigerCacheSizeGB=1
         ports:
-        - name: counter
+        - name: mongo
           containerPort: 27017
 ---
 apiVersion: v1
@@ -69,13 +82,13 @@ metadata:
   name: counter-mongo
   labels:
     app: counter
+    component: mongo
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: counter
     component: mongo
   ports:
   - port: 27017
-    protocol: TCP
-    targetPort: http
-
+    targetPort: mongo
+    name: mongo

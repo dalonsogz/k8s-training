@@ -35,7 +35,7 @@ metadata:
   labels:
     app: demo
 spec:
-  storageClassName: rook-cephs #
+  storageClassName: rook-cephfs #
   accessModes: ["ReadWriteOnce"]
   resources:
     requests:

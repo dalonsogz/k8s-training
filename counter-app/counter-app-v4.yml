@@ -1,0 +1,138 @@
+---
+#curl -H Host:kamil.counter.local 10.1.3.201
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: counter
+  labels:
+    app: counter
+    component: httpd
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: daniel.counter.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: counter-httpd
+            port:
+              number: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: counter-httpd
+  labels:
+    app: counter
+    component: httpd
+spec:
+  type: ClusterIP
+  selector:
+    app: counter
+    component: httpd
+  ports:
+  - port: 80
+    targetPort: http
+    name: http
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: counter-httpd
+  labels:
+    app: counter
+    component: httpd
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: counter
+      component: httpd
+  template:
+    metadata:
+      labels:
+        app: counter
+        component: httpd
+    spec:
+      containers:
+      - name: httpd
+        image: registry.kamilbaran.pl/training/kubernetes/httpd:latest
+        env:
+        - name: MONGO_CS
+          value: mongodb://counter-mongo:27017 #mongo service name
+        ports:
+        - name: http
+          containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: counter-mongo
+  labels:
+    app: counter
+    component: mongo
+spec:
+  type: ClusterIP
+  selector:
+    app: counter
+    component: mongo
+  ports:
+  - port: 27017
+    targetPort: mongo
+    name: mongo
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: counter-mongo
+  labels:
+    app: counter
+    component: mongo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: counter
+      component: mongo
+  template:
+    metadata:
+      labels:
+        app: counter
+        component: mongo
+    spec:
+      containers:
+      - name: mongo
+        image: registry.kamilbaran.pl/training/kubernetes/mongo:latest
+        command:
+        - /usr/bin/mongod
+        - --dbpath=/data/db
+        - --bind_ip_all
+        - --wiredTigerCacheSizeGB=1
+        ports:
+        - name: mongo
+          containerPort: 27017
+
+        volumeMounts:
+        - name: mongo-data
+          mountPath: /data/db
+      volumes:
+      - name: mongo-data
+        persistentVolumeClaim:
+          claimName: mongo-data-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mongo-data-pvc
+  labels:
+    app: counter
+    component: mongo
+spec:
+  storageClassName: rook-cephfs
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 1Gi

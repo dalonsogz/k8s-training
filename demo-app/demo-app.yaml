@@ -34,7 +34,7 @@ spec:
 #  type: ClusterIP
 #  type: LoadBalancer
   selector:
-    app: test
+    app: demo
   ports:
   - port: 80
     protocol: TCP
