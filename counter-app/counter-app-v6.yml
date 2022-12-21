@@ -1,3 +1,40 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: counter
+  labels:
+    app: counter
+    component: httpd
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: daniel.counter.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: counter-httpd
+            port:
+              number: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: counter-httpd
+  labels:
+    app: counter
+    component: httpd
+spec:
+  type: ClusterIP
+  selector:
+    app: counter
+    component: httpd
+  ports:
+  - port: 80
+    targetPort: http
+    name: http
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -31,29 +68,31 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: counter-httpd
+  name: counter-mongo
   labels:
     app: counter
-    component: httpd
+    component: mongo
 spec:
-  type: NodePort
+  type: ClusterIP
+  clusterIP: None #
   selector:
     app: counter
-    component: httpd
+    component: mongo
   ports:
-  - port: 80
-    targetPort: http
-    name: http
+  - port: 27017
+    targetPort: mongo
+    name: mongo
 ---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet #
 metadata:
   name: counter-mongo
   labels:
     app: counter
     component: mongo
 spec:
-  replicas: 1
+  replicas: 3 #
+  serviceName: counter-mongo #
   selector:
     matchLabels:
       app: counter
@@ -63,6 +102,7 @@ spec:
       labels:
         app: counter
         component: mongo
+        version: stable
     spec:
       containers:
       - name: mongo
@@ -75,20 +115,15 @@ spec:
         ports:
         - name: mongo
           containerPort: 27017
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: counter-mongo
-  labels:
-    app: counter
-    component: mongo
-spec:
-  type: ClusterIP
-  selector:
-    app: counter
-    component: mongo
-  ports:
-  - port: 27017
-    targetPort: mongo
-    name: mongo
+        volumeMounts:
+        - name: mongo-data
+          mountPath: /data/db
+  volumeClaimTemplates: #
+  - metadata:
+      name: mongo-data
+    spec:
+      storageClassName: rook-cephfs
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi

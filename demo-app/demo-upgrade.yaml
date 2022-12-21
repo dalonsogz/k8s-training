@@ -34,7 +34,7 @@ spec:
       labels:
         app: demo
         version: new
-    spec:
+    spec: 
       containers:
       - name: demo
         image: registry.kamilbaran.pl/training/kubernetes/demo-app:v2
